@@ -50,3 +50,5 @@ The result of my program: 68.59 km
 Result www.distance.to: 68.61 km
 
 There is a small error in the calculations, perhaps this is due to the radius of the earth (For my program, I took a radius of 6371.23 km)
+
+Added tests in case wrong coordinates are specified or file is missing
