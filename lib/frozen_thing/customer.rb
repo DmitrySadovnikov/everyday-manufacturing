@@ -8,37 +8,33 @@ module FrozenThing
       end
 
       def all
-        file = File.read('customers.txt')
-        result = file.each_line.map do |line|
-          next if line.strip.empty?
+        file.each_line.map(&method(:parse_line)).sort_by(&:user_id)
+      end
 
-          json = JSON.parse(line)
-          Customer.new(
-            user_id: json['user_id'].to_i,
-            name: json['name'],
-            lat: json['latitude'].to_f,
-            lon: json['longitude'].to_f
-          )
-        end
+      def parse_line(line)
+        return if line.strip.empty?
 
-        result.sort_by(&:user_id)
+        json = JSON.parse(line)
+        Customer.new(user_id: json['user_id'].to_i,
+                     name: json['name'],
+                     point: Point.new(lat: json['latitude'], lon: json['longitude']))
+      rescue StandardError
+        raise InvalidFileContentError, 'invalid file content'
+      end
+
+      def file
+        raise FileNotFoundError, "file #{FILE_PATH} not found" unless File.exist?(FILE_PATH)
+
+        File.read(FILE_PATH)
       end
     end
 
-    attr_reader :user_id, :name, :lon, :lat
+    attr_reader :user_id, :name, :point
 
-    def initialize(user_id:, name:, lat:, lon:)
+    def initialize(user_id:, name:, point:)
       @user_id = user_id
       @name = name
-      @lat = lat
-      @lon = lon
-    end
-
-    def point
-      {
-        lat: lat,
-        lon: lon
-      }
+      @point = point
     end
 
     def distance(end_point: PARTY_POINT)
